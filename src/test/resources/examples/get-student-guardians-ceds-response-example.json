@@ -1,0 +1,26 @@
+[
+  {
+    "edId": "107920885A",
+    "guardianId": "ECKE00",
+    "guardianRole": 1,
+    "guardianSalutation": "Mr",
+    "guardianLastName": "Smith",
+    "guardianFirstName": "Grey",
+    "guardianPhone": "82980800",
+    "guardianMobile": "0401178524",
+    "guardianEmail": "smithgrey@hotmail.com",
+    "lastUpdatedOn": "2014-02-25T14:23:09.19"
+  },
+  {
+    "edId": "107920885B",
+    "guardianId": "ECKE01",
+    "guardianRole": 1,
+    "guardianSalutation": "Mr",
+    "guardianLastName": "Blogs",
+    "guardianFirstName": "Pink",
+    "guardianPhone": "82980800",
+    "guardianMobile": "0401178524",
+    "guardianEmail": "smithgrey@hotmail.com",
+    "lastUpdatedOn": "2014-02-25T14:23:09.19"
+  }
+]

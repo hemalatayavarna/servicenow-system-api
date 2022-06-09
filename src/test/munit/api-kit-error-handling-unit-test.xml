@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="error-handling-unit-test.xml" />
+	<munit:before-test name="api-kit-error-handling-unit-testBefore_Test" doc:id="2549121b-424a-4924-add1-7e33b8ba8c2c" >
+		<munit-tools:mock-when doc:name="Mock when POST to Error API" doc:id="d73a7a9d-4a43-4cb5-a8df-2d1ab34e2f3c" processor="http:request">
+			<munit-tools:with-attributes >
+				<munit-tools:with-attribute whereValue="POST to Errors Path" attributeName="doc:name" />
+			</munit-tools:with-attributes>
+		</munit-tools:mock-when>
+	</munit:before-test>
+	<flow name="error-handling-unit-test:wrapper:flow" doc:id="67ed0268-3904-4636-9568-f5ba8b54f594" >
+		<flow-ref doc:name="service-desk-process-api-main" doc:id="7612023d-65e0-457d-a55a-2654a3169b81" name="service-desk-process-api-main"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="78c37b1a-b04b-4ddb-b050-06e60a3b3995" >
+				<logger level="DEBUG" doc:name="Exception handled continue to Assert" doc:id="b9148205-f6d7-4ed0-84b5-0d3d0b92a3d6" message="Exception Handled"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	
+	<munit:test name="error-handling-unit-test:bad-request:test" description="MUnit Test" doc:id="3c9addb7-c829-4f6f-abd1-66a4454475bc" tags="unit">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock API Kit Return APIKIT:BAD_REQUEST" doc:id="7666c36b-e713-4a7d-86a6-8c370bab46a5" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="service-desk-process-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="error-handling-unit-test:wrapper:flow" doc:id="0be567de-c96a-420f-81f2-5b7e6cb05a01" name="error-handling-unit-test:wrapper:flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that HTTP Status is 400" doc:id="44d3ff27-8604-4b4c-8a4a-df9a67bd15e2" expression="#[vars.httpStatus]" is='#[MunitTools::equalTo(400)]' message="The HTTP Status is not Correct"/>
+			<munit-tools:verify-call doc:name="Verify call to Bad Request Error" doc:id="9ba22269-abfc-4c08-8726-83dbbbadc2ad" processor="mule:logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute attributeName="doc:name" whereValue="Bad Request Error" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-handling-unit-test:not-found:test" description="MUnit Test" doc:id="fce1dd96-d57c-4396-82b0-ba467dccb8cf" tags="unit">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock API Kit Return APIKIT:NOT_FOUND" doc:id="9da9beb8-4095-46be-82cd-674dfa72681d" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="service-desk-process-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="error-handling-unit-test:wrapper:flow" doc:id="4f7f1227-8560-4a8c-85f2-8801eeb14bc9" name="error-handling-unit-test:wrapper:flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that HTTP Status is 404" doc:id="7e5f9bec-b147-4226-b527-f82b30dc73a5" expression="#[vars.httpStatus]" is='#[MunitTools::equalTo(404)]' message="The HTTP Status is not Correct"/>
+			<munit-tools:verify-call doc:name="Verify call to Not Found Error" doc:id="f28678b7-663a-4e09-9f8d-ed8651259280" processor="mule:logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute attributeName="doc:name" whereValue="Not Found Error" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-handling-unit-test:method-not-allowed:test" description="MUnit Test" doc:id="7f0dac2c-eca9-48dc-80ef-6c96b68f99bc" tags="unit">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock API Kit Return APIKIT:METHOD_NOT_ALLOWED" doc:id="02de3004-dc8d-4586-a1aa-62b08147f0a3" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="service-desk-process-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="error-handling-unit-test:wrapper:flow" doc:id="1f10a725-02c6-4658-b6d7-b38f3414c775" name="error-handling-unit-test:wrapper:flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that HTTP Status is 405" doc:id="9bb3a79a-9d55-4bde-81cb-57132cd2569c" expression="#[vars.httpStatus]" is='#[MunitTools::equalTo(405)]' message="The HTTP Status is not Correct"/>
+			<munit-tools:verify-call doc:name="Verify call to Method Not Allowed Error" doc:id="2a719f69-91a2-477d-87d9-c2eaf8220267" processor="mule:logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute attributeName="doc:name" whereValue="Method Not Allowed Error" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-handling-unit-test:not-acceptable:test" description="MUnit Test" doc:id="0ed33074-0f40-42dc-b85b-c3030b9172c8" tags="unit">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock API Kit Return APIKIT:NOT_ACCEPTABLE" doc:id="27d082df-1f19-4614-8ecf-e82e5b140333" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="service-desk-process-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_ACCEPTABLE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="error-handling-unit-test:wrapper:flow" doc:id="adc01ae8-fbd3-4624-be0c-3bc2f35e22b3" name="error-handling-unit-test:wrapper:flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that HTTP Status is 406" doc:id="b6c1f096-4601-487f-a6f7-588e3b3e3865" expression="#[vars.httpStatus]" is='#[MunitTools::equalTo(406)]' message="The HTTP Status is not Correct"/>
+			<munit-tools:verify-call doc:name="Verify call to Not Acceptable Error" doc:id="76626c74-97e7-4a5b-8653-b6124db08a83" processor="mule:logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute attributeName="doc:name" whereValue="Not Acceptable Error" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-handling-unit-test:unsupported-media-type:test" description="MUnit Test" doc:id="907a67e2-8135-4d11-9ff8-db0a0de7ff2f" tags="unit">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock API Kit Return APIKIT:UNSUPPORTED_MEDIA_TYPE" doc:id="5d9fabb3-cf8b-4665-9f9f-0d2409584d0b" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="service-desk-process-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:UNSUPPORTED_MEDIA_TYPE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="error-handling-unit-test:wrapper:flow" doc:id="27c417ce-b727-43f7-bcae-93aecb572a9e" name="error-handling-unit-test:wrapper:flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that HTTP Status is 415" doc:id="327b06ad-06cc-48cd-848e-e9153aa6a476" expression="#[vars.httpStatus]" is='#[MunitTools::equalTo(415)]' message="The HTTP Status is not Correct"/>
+			<munit-tools:verify-call doc:name="Verify call to Unsupported Media Type Error" doc:id="89dadee9-6407-4ac0-8f3f-e442dc094503" processor="mule:logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute attributeName="doc:name" whereValue="Unsupported Media Type Error" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="error-handling-unit-test:not-implemented:test" description="MUnit Test" doc:id="72613671-19a0-4c41-9b50-776b3802ba5f" tags="unit">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock API Kit Return APIKIT:NOT_IMPLEMENTED" doc:id="b7267a8d-ccc5-4c69-b58d-543b05a28e77" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="service-desk-process-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_IMPLEMENTED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="error-handling-unit-test:wrapper:flow" doc:id="476ff05f-cbd8-47ab-878a-6d4ee352ea8c" name="error-handling-unit-test:wrapper:flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that HTTP Status is 501" doc:id="b012f687-cf7d-4825-ab2a-63c2d0d94b6e" expression="#[vars.httpStatus]" is='#[MunitTools::equalTo(501)]' message="The HTTP Status is not Correct"/>
+			<munit-tools:verify-call doc:name="Verify call to Not Implemented Error" doc:id="f0c611f6-56b2-4f19-823c-1aa88643675e" processor="mule:logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute attributeName="doc:name" whereValue="Not Implemented Error" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="error-handling-unit-test:any:test" description="MUnit Test" doc:id="fe9b9f4e-dec0-460f-9ace-bf7e842db162" tags="unit">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock API Kit Return ANY" doc:id="708f83dd-e5c3-4ebe-81b6-e1ea71260898" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="service-desk-process-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="ANY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="error-handling-unit-test:wrapper:flow" doc:id="6b7b0845-9354-42bf-8da9-56886329fa5e" name="error-handling-unit-test:wrapper:flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that HTTP Status is 500" doc:id="fb3287b6-1a7c-4468-b37c-836727573ff4" expression="#[vars.httpStatus]" is='#[MunitTools::equalTo(500)]' message="The HTTP Status is not Correct"/>
+			<munit-tools:verify-call doc:name="Verify call to Unhandled Error" doc:id="67cfa972-4401-45b4-9631-27a53e2067de" processor="mule:logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute attributeName="doc:name" whereValue="Unhandled Error" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

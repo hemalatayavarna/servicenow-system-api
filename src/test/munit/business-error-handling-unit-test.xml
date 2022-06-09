@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="buisness-error-handling-unit-test.xml" />
+	<munit:before-test name="business-error-handling-unit-testBefore_Test" doc:id="566d22b7-3bbd-48ed-8e26-098dc56ec471" >
+		<munit-tools:mock-when doc:name="Mock when POST to Error API" doc:id="469e684a-5fcd-45ff-a36e-75076d3a7705" processor="http:request">
+			<munit-tools:with-attributes >
+				<munit-tools:with-attribute whereValue="POST to Errors Path" attributeName="doc:name" />
+			</munit-tools:with-attributes>
+		</munit-tools:mock-when>
+	</munit:before-test>
+	<munit:test name="business-error-handling-unit-test:connectivity" doc:id="a4141601-7f0f-4021-abdf-4e13ca70fcde" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock API Call to Return HTTP Connectivity Error (Call IMDDB)" doc:id="08f37f1f-7354-4e6a-bdfb-8742f6ddd9fb" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call IMDDB" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:CONNECTIVITY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock API Call to Return HTTP Connectivity Error" doc:id="08a7d37e-5c5a-4b66-abe9-03402951583d" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call Whispir" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="Call Whispir" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:CONNECTIVITY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="0d927a83-bda2-435c-ac4a-1d2a562ce6b0">
+				<munit:payload value="#[MunitTools::getResourceAsString('examples/post-whispir-onboard-request-example.json')]" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="post:\requests\whispir\onboard:application\json:service-desk-process-api-config" doc:id="3a851590-62dd-40f7-bfe8-da8d56a3160e" name="post:\requests\whispir\onboard:application\json:service-desk-process-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that HTTP Status is 500" doc:id="5a678e58-5f35-41fc-a60e-a8825a904bef" message="The HTTP Status is not Correct" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(500)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="business-error-handling-unit-test:expression" doc:id="89dd2afe-3085-4247-a7ba-6204a3dee77b" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Return EXPRESSION Error" doc:id="47e0af23-f370-4ba6-a4cc-6f23e54c676b" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call Whispir" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="EXPRESSION" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Return EXPRESSION Error" doc:id="b65727e7-f226-4aef-bcd5-22ae286f519a" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call IMDDB" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="EXPRESSION" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		
+</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="e40279f9-ec7f-4463-badd-8964861cd530">
+				<munit:payload value="#[MunitTools::getResourceAsString('examples/post-whispir-onboard-request-example.json')]" mediaType="application/json" />
+
+			</munit:set-event>
+			<flow-ref doc:name="post:\requests\whispir\onboard:application\json:service-desk-process-api-config" doc:id="59af4de6-7703-4b87-866a-2800d47b603a" name="post:\requests\whispir\onboard:application\json:service-desk-process-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that HTTP Status is 500" doc:id="0f6c25bd-b3f9-45db-b421-5469fa82cf13" message="The HTTP Status is not Correct" expression="#[vars.httpStatus]" is="#[MunitTools::equalTo(500)]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

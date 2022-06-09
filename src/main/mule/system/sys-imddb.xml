@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="sys-imddb:request:subflow" doc:id="9c44f0ab-b25b-49a7-ab2e-98a41930420f" >
+		<logger level="INFO" doc:name="Start IMDDB System Call" doc:id="49a9877a-3356-4bd4-9672-08ebca7e868d" message="Start IMDDB System Call" />
+		<flow-ref doc:name="common-flows:set-header:subflow" doc:id="1b2d1f95-1cf8-4272-b7f9-318b248b0bdb" name="common-flows:set-header:subflow" />
+		<http:request method="#[vars.imddbMethod]" doc:name="Call IMDDB" doc:id="a9b68cd4-28e0-4ec4-b8dc-8cd671f304ce" path="#[vars.imddbPath]" sendCorrelationId="ALWAYS" config-ref="imddb.sys-httpRequesterConfig">
+			<http:headers><![CDATA[#[vars.headers]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="End IMDDB System Call" doc:id="050ef587-380d-4db6-93e0-d0c57688d6ed" message="End IMDDB System Call" />
+	</sub-flow>
+</mule>

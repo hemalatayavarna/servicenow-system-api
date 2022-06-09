@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="impl-send-error:format-error-notification:subflow" doc:id="a04265ae-04b5-4d5a-8b7a-245d65fa3ceb">
+		<async doc:name="Async" doc:id="627b8200-54c7-4fce-8a70-b348df8c9700" >
+			<logger level="INFO" doc:name="Start Set Payload for Error" doc:id="4da657ec-8f5d-415d-aaeb-1a5da05d9b51" message="Start Set Payload for Error" />
+			<ee:transform doc:name="Set Error Notification Payload" doc:id="fe79487b-5179-4681-a809-5182290332d5">
+			<ee:message>
+					<ee:set-payload resource="dwl/error-message.dwl" />
+
+			</ee:message>
+		</ee:transform>
+			<flow-ref doc:name="sys-error:send-error:subflow" doc:id="aa61fc84-304b-4dc8-85df-11227d18cad9" name="sys-error:send-error:subflow" />
+			<logger level="INFO" doc:name="End Set Payload for Error" doc:id="b732da25-7786-401a-9156-2f170e62385e" message="End Set Payload for Error" />
+		</async>
+	
+</sub-flow>
+</mule>

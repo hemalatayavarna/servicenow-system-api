@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="impl-contacts:create:subflow" doc:id="f3a5383c-e131-43c1-857f-c412ab9d5a98" >
+		<logger level="INFO" doc:name="Start Create Contacts for orgUnitId" doc:id="2d5a9bb9-9592-4af7-b834-8d574b17de95" message="Start Create Contacts for orgUnitId=#[vars.orgUnitId]" />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="a42cfd11-5f18-4ae5-a8ee-c287d74f0455" >
+			<route >
+				<flow-ref doc:name="impl-contacts:staff:subflow" doc:id="4723e022-75d5-453d-a843-dff3baf6c599" name="impl-contacts:staff:subflow"/>
+			</route>
+			<route >
+				<flow-ref doc:name="impl-contacts:guardians:subflow" doc:id="a82b2fa4-272c-452e-ba72-8c298cffbf93" name="impl-contacts:guardians:subflow"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Set Payload" doc:id="c82c6d17-28e9-43a9-b2e8-7dec4cd1ff0b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload..payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Create Contacts" doc:id="74f81f1d-f641-4d44-9a66-263beb27dd4e" message="End Create Contacts" />
+	</sub-flow>
+	<sub-flow name="impl-contacts:guardians:subflow" doc:id="45fda144-5698-4c54-a232-394a526447d2" >
+		<logger level="INFO" doc:name="Start Get Guardians" doc:id="883c9817-3683-467e-a978-f0d5f15aab54" message="Start Get Guardians"/>
+		<flow-ref doc:name="impl-distribution-lists:get-enrolment-data:subflow - Target: enrolmentPayload" doc:id="9c8ff048-8a81-4c45-8e03-d8d3860c2294" name="impl-distribution-lists:get-enrolment-data:subflow" target="enrolmentPayload"/>
+		<ee:transform doc:name="Set Variables: studentPath, studentQueryParameters" doc:id="68e2222b-5662-4621-b8b0-82ec5e3c5907">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="studentPath"><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('student.proc.guardians.path')]]></ee:set-variable>
+				<ee:set-variable variableName="studentQueryParameters"><![CDATA[%dw 2.0
+import p from Mule
+import * from dw::Runtime
+
+output application/java
+var ceds = p('student.system.ceds')
+var eys = p('student.system.eys')
+var schoolType = if (vars.enrolmentPayload.sourceSystem == ceds)
+  p('student.department.school')
+else if (vars.enrolmentPayload.sourceSystem == eys)
+  p('student.department.preschool')
+else
+  fail(p('invalid.source_system.error'))
+---
+{
+	"org-unit-id": vars.orgUnitId,
+	"school-type": schoolType,
+	"status": p('student.status.active')
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="proc-student:request:subflow" doc:id="71ee8d89-8c1e-4a28-95bb-36d4b54a3338" name="proc-student:request:subflow"/>
+		<ee:transform doc:name="Filter Payload based off guardianContactPreference and deceased Flag" doc:id="fffe2cc1-f416-45cf-af79-0f7674026087" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import p from Mule
+
+output application/json
+var data = payload.payload
+var filteredData = if (vars.guardianContactPreference == p('whispir.guardian_preference.primary'))
+					    data filter (value, index) -> (value.guardianRole == 1)
+					else
+					    data
+---
+filteredData filter (value, index) -> (value.deceased == p('guardian.deceased.flag.false') as Boolean)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Set Guardians Common Payload" doc:id="a0ff5859-527d-4d6d-9b12-dd8ad69b8da7" >
+			<ee:message>
+				<ee:set-payload resource="dwl/whispir-guardian-contact-payload.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Get Guardians" doc:id="fb32ffa1-2dab-4c7c-833c-03047a41beb2" message="End Get Guardians" />
+	</sub-flow>
+	<sub-flow name="impl-contacts:staff:subflow" doc:id="ca177f93-4f04-404f-a4d7-571c65af7157" >
+		<logger level="INFO" doc:name="Start Get Staff" doc:id="e85a3e99-c3e1-44f6-a98f-d9826207709a" message="Start Get Staff" />
+		<ee:transform doc:name="Set Variables: staffPath, staffQueryParameters" doc:id="20f5e125-2b5e-45ef-8a16-f0b81497230f">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="staffQueryParameters" ><![CDATA[%dw 2.0
+import p from Mule
+output application/java
+---
+{
+	"org-unit-id": vars.orgUnitId,
+	"status": p('student.status.active')
+}]]></ee:set-variable>
+				<ee:set-variable variableName="staffPath" ><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('staff.proc.staff.path')]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="proc-staff:request:subflow" doc:id="99d2c188-18ff-402e-8414-81027513772c" name="proc-staff:request:subflow"/>
+		<ee:transform doc:name="Set Staff Common Payload" doc:id="1c012fcb-a652-45da-bf97-7932221c17e7">
+			<ee:message>
+				<ee:set-payload resource="dwl/whispir-staff-contact-payload.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Get Staff" doc:id="56c2fe20-b95c-4886-a809-1ea643475676" message="End Get Staff" />
+	</sub-flow>
+</mule>

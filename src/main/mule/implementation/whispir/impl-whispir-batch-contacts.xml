@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="impl-whispir-batch-contacts:subflow" doc:id="35d5ce6b-bd23-4b1b-baea-15425cbe5f50" >
+		<logger level="INFO" doc:name="Start Whispir Batch Contacts" doc:id="9e1ec89b-6392-4f79-8866-5704ea9f3da0" message="Start Whispir Batch Contacts"/>
+		<flow-ref doc:name="impl-imddb:get-org-units:subflow" doc:id="50a83e1c-a69d-4449-887d-490efeecb2ba" name="impl-imddb:get-org-units:subflow" />
+		<parallel-foreach doc:name="Whispir Parallel For Each Org Unit" doc:id="55484031-24b1-47ea-8199-cfcc5586c4fc" maxConcurrency="${whispir.batch.contacts.max_concurrency}">
+			<until-successful maxRetries="${whispir.batch.max.retries}" doc:name="Whispir Contacts Until Successful" doc:id="712b5eb8-2534-47e0-9f24-a2f0912626ed" millisBetweenRetries="${whispir.batch.max.retries.delay}">
+				<ee:transform doc:name="Set Variables: orgUnitId, guardianContactPreference" doc:id="54f1408d-4f9e-4512-9357-e59e2c866cd1" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="orgUnitId" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.orgUnitId]]></ee:set-variable>
+						<ee:set-variable variableName="guardianContactPreference" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.guardianContactPreference]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="impl-contacts:create:subflow" doc:id="88f25a15-7f5f-4606-95e8-c260cea50f32" name="impl-contacts:create:subflow" />
+			</until-successful>
+		</parallel-foreach>
+		<ee:transform doc:name="Set Payload (convert payload to CSV), Set Variables: whispirQueryParameters, whispirPath, whispirMethod" doc:id="30196ff3-67b9-4a90-bb73-58bf70f246e1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv quoteValues=true
+---
+flatten(payload.payload)]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="whispirMethod"><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('rest.api.method.post')]]></ee:set-variable>
+				<ee:set-variable variableName="whispirPath"><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('whispir.sys.contacts.path')]]></ee:set-variable>
+				<ee:set-variable variableName="whispirQueryParameters" ><![CDATA[%dw 2.0
+import p from Mule
+
+output application/json
+// format of the Whispir filename: <Name>_<Time>_<Date>_<Count>records<Import Option>.csv 
+var dateTimeNow = now() >> p('property.timezone')
+var name = p('whispir.file.company_name')
+var time = dateTimeNow as String { format: p('whispir.file.time_format') }  
+var date = dateTimeNow as String { format: p('whispir.file.date_format') }
+var importOption =  p('whispir.file.import_option')
+var extension = p('whispir.file.extension')
+var filename = "$(name)_$(time)_$(date)_$(importOption)$(extension)"
+---
+{
+	"filename": filename
+}]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="sys-whispir:request:subflow" doc:id="62727a46-4b8f-4646-86f0-9f24a5f2578c" name="sys-whispir:request:subflow"/>
+		<logger level="INFO" doc:name="End Whispir Batch Contacts" doc:id="349edd66-26bb-480e-96d5-ae46b95d95c9" message="End Whispir Batch Contacts" />
+	</sub-flow>
+</mule>

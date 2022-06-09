@@ -1,0 +1,26 @@
+{
+  "sourceSystem": "IDM",
+  "payload": [
+    {
+      "employeeId": "1746568",
+      "firstName": "Darren Lee",
+      "lastName": "Keen",
+      "preferredName": "Darren",
+      "salutation": "Mr",
+      "workEmail": "dkeen@gmail.com",
+      "workPhone": "",
+      "workMobile": "422009469",
+      "mainPositionId": "0783SS3",
+      "mainPositionName": "Schl Serv Officer Level 3",
+      "mainRoleId": "SITESUPP",
+      "mainRoleName": "Site Support Staff",
+      "gender": "Male",
+      "isExternal": false,
+      "mainOrgUnitId": "783",
+      "mainOrgUnitName": "Mount Barker High School",
+      "isDepartmentScope": true,
+      "isActive": true,
+      "lastUpdatedOn": "2021-03-19T14:03:07.413"
+    }
+  ]
+}

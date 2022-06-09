@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="proc-staff:request:subflow" doc:id="92dc4edf-8093-4dea-90ac-6d9ea4a36836" >
+		<logger level="INFO" doc:name="Start Staff Process Call" doc:id="675ff3dd-8d3b-4bd1-bff5-5cb167d187dd" message="Start Staff Process Call - #[vars.staffPath] #[vars.staffQueryParameters]" />
+		<flow-ref doc:name="common-flows:set-header:subflow" doc:id="1dfaa625-5d57-4512-a078-9db42fb96160" name="common-flows:set-header:subflow" />
+		<http:request method="GET" doc:name="Call Staff PAPI" doc:id="3dd28a3f-3ba2-41f8-addc-c015fc6703e2" path="#[vars.staffPath]" sendCorrelationId="ALWAYS" config-ref="staff.proc-httpRequesterConfig">
+			<http:headers><![CDATA[#[vars.headers]]]></http:headers>
+			<http:query-params ><![CDATA[#[vars.staffQueryParameters]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="End Staff Process Call" doc:id="914c72db-f9e8-4700-baa2-55673d1188f6" message="End Staff Process Call" />
+	</sub-flow>
+</mule>

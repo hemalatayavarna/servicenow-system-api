@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+    <http:listener-config name="service-desk-process-api-httpListenerConfig">
+        <http:listener-connection host="${https.private.host}" port="${https.private.port}" readTimeout="${http.read.timeout}" connectionIdleTimeout="${http.connection.idle.timeout}" protocol="HTTPS">
+            <tls:context>
+                <tls:key-store path="${https.keystore.path}" keyPassword="${secure::https.keystore.key.password}" password="${secure::https.keystore.store.password}" type="jks" />
+            </tls:context>
+        </http:listener-connection>
+    </http:listener-config>
+    <apikit:config name="service-desk-process-api-config" api="resource::e158212d-36c8-4172-830d-4c8c71836894:service-desk-process-api:1.1.4:raml:zip:service-desk-process-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="service-desk-process-api-main" doc:id="1a8c0b27-0b68-4719-adcf-50250fc16480">
+        <http:listener config-ref="service-desk-process-api-httpListenerConfig" path="${api.http.path}${api.http.version}">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="service-desk-process-api-config" />
+        <error-handler ref="api-kit-error-handler" />
+    </flow>
+    <flow name="service-desk-process-apiflow:whispir-contacts:flow" doc:id="f00bbeae-b4e2-426b-91d2-3f5dcc8aaf20">
+        <scheduler doc:name="Whispir Contacts Scheduler" doc:id="3cb74c60-e414-44ee-866a-ae238d0f5740">
+            <scheduling-strategy>
+                <cron expression="${whispir.contacts.cron}" />
+            </scheduling-strategy>
+        </scheduler>
+        <flow-ref doc:name="impl-whispir-batch-contacts:subflow" doc:id="aec858a6-baaf-46a2-86de-c2c991797c77" name="impl-whispir-batch-contacts:subflow" />
+        <error-handler ref="business-error-handler" />
+    </flow>
+    <flow name="post:\requests\whispir\onboard:application\json:service-desk-process-api-config" doc:id="2db45060-1f63-4520-b901-357f5b0733cb">
+        <logger level="INFO" doc:name="Start Request Whispir Onboard" doc:id="70f22886-f66d-46da-bbd5-ab726f7e42e6" message="Start Request Whispir Onboard" />
+        <flow-ref doc:name="service-desk-process-api:store-original-request:subflow" doc:id="bf41cf0a-19e8-48ba-b7ab-deb4d1379700" name="service-desk-process-api:store-original-request:subflow" />
+        <flow-ref doc:name="impl-onboard-site:process:subflow" doc:id="fc173890-8939-4298-a812-db6aa9c6999e" name="impl-onboard-site:process:subflow" />
+        <logger level="INFO" doc:name="End Request Whispir Onboard" doc:id="dc1d9fec-ec59-421d-8fa3-c13ff907b131" message="End Request Whispir Onboard" />
+        <error-handler ref="business-error-handler" />
+    </flow>
+    <sub-flow name="service-desk-process-api:store-original-request:subflow" doc:id="eb645327-6cc9-47f4-b884-89647d62472b">
+        <ee:transform doc:name="Set Variables: originalPayload, originalHeaders" doc:id="861dc21a-744f-4237-bbf4-b1f8edf475e8">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable variableName="originalPayload"><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+                <ee:set-variable variableName="originalHeaders"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </sub-flow>
+    <flow name="get:\health:service-desk-process-api-config" doc:id="76f958d2-e264-41ba-a61d-bc01fb2602b1">
+        <ee:transform doc:name="Set Health Payload">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  name: Mule::p('system.context'),
+  status: Mule::p('health.system.status.ok'),
+  timestamp: (now() as DateTime) >> Mule::p('property.timezone')
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <error-handler ref="business-error-handler" />
+    </flow>
+</mule>

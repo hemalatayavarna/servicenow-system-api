@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="proc-student:request:subflow" doc:id="5d792198-8d39-4a1f-905c-24e36ec50871" >
+		<logger level="INFO" doc:name="Start Student Process Call" doc:id="bc083215-27b0-47c4-a8f2-2273ee7c9b51" message="Start Student Process Call - #[vars.studentPath] #[vars.studentQueryParameters]" />
+		<flow-ref doc:name="common-flows:set-header:subflow" doc:id="04337ec3-d138-4c02-a1df-4f8a7ad13d5e" name="common-flows:set-header:subflow" />
+		<http:request method="GET" doc:name="Call Student PAPI" doc:id="bf48353a-6aa3-498a-87b2-ba8102cded7e" path="#[vars.studentPath]" sendCorrelationId="ALWAYS" config-ref="student.proc-httpRequesterConfig">
+			<http:headers><![CDATA[#[vars.headers]]]></http:headers>
+			<http:query-params><![CDATA[#[vars.studentQueryParameters]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="End Student Process Call" doc:id="c6c8816a-167b-4838-b7df-e8b3e0bce40f" message="End Student Process Call" />
+	</sub-flow>
+</mule>

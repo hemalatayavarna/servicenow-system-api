@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="impl-imddb:insert-site:subflow" doc:id="ac7906a7-5baa-4a3d-bcce-d667cd3ee059" >
+		<logger level="INFO" doc:name="Start Impl IMDDB Insert Site" doc:id="0860d622-72d2-43b0-831e-d45bb10c4e7f" message="Start Impl IMDDB Insert Site"/>
+		<ee:transform doc:name="Set Payload, Set Variables: imddbMethod. imddbPath" doc:id="29f4d066-e619-40ca-a16f-f67b36c265a7" >
+			<ee:message>
+				<ee:set-payload resource="dwl/whispir-imdb-insert-site-payload.dwl" />
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="imddbMethod" ><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('rest.api.method.post')]]></ee:set-variable>
+				<ee:set-variable variableName="imddbPath" ><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('imddb.sys.whispir_org_units.path')]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="sys-imddb:request:subflow" doc:id="b142b52b-da58-44a9-983f-c410bfa4b406" name="sys-imddb:request:subflow" />
+		<logger level="INFO" doc:name="End Impl IMDDB Insert Site" doc:id="eb3ed7f4-f250-48c2-96ee-e4ebb34ae71c" message="End Impl IMDDB Insert Site"/>
+	</sub-flow>
+	<sub-flow name="impl-imddb:get-org-units:subflow" doc:id="127c6a6b-fef9-4b57-b345-7ca1feb5bba5" >
+		<logger level="INFO" doc:name="Start Impl IMDDB Get Org Units" doc:id="9ba80678-67e1-46e2-97c8-eaaa7bb5bcc4" message="Start Impl IMDDB Get Org Units"/>
+		<ee:transform doc:name="Set Variables: imddbMethod. imddbPath" doc:id="6ebc50a2-4bb0-46da-8de0-5fa8da3a0458" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="imddbMethod" ><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('rest.api.method.get')]]></ee:set-variable>
+				<ee:set-variable variableName="imddbPath" ><![CDATA[%dw 2.0
+output application/java
+var orgUnitsPath = Mule::p('imddb.sys.whispir_org_units.path')
+var path = if (vars.orgUnitId != null)
+	"$(orgUnitsPath)/$(vars.orgUnitId)"
+else
+	orgUnitsPath
+---
+path]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="sys-imddb:request:subflow" doc:id="41e2e8c6-d9c7-499d-9c7f-ab9104bf6bf2" name="sys-imddb:request:subflow" />
+		<logger level="INFO" doc:name="End Impl IMDDB Get Org Units" doc:id="802df7ae-d1b6-4409-89f7-b51983c58ecd" message="End Impl IMDDB Get Org Units"/>
+	
+</sub-flow>
+</mule>

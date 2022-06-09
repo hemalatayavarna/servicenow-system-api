@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="impl-workspaces:create:subflow" doc:id="f417bd39-6417-40db-b98a-4bd4cab5abb0" >
+		<logger level="INFO" doc:name="Start Create Workspace" doc:id="b588c648-ec2d-4900-afad-a214a93bc3c3" message="Start Create Workspace" />
+		<ee:transform doc:name="Set Payload for Whispir Workspace, Set Variables: whispirMethod. whispirPath" doc:id="a9199347-c42f-45c5-b441-546cd5a0dae3" >
+			<ee:message>
+				<ee:set-payload resource="dwl/whispir-workspace-payload.dwl" />
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="whispirMethod" ><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('rest.api.method.post')]]></ee:set-variable>
+				<ee:set-variable variableName="whispirPath" ><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('whispir.sys.workspaces.path')]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="sys-whispir:request:subflow" doc:id="dd5eba67-1e84-4b59-82a5-57434aeb2f56" name="sys-whispir:request:subflow"/>
+		<ee:transform doc:name="Set Variables: whispirWorkspaceId" doc:id="edd0c2c6-0ab6-4ed9-a872-9d4906d32026" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="whispirWorkspaceId" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.id]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="impl-imddb:insert-site:subflow" doc:id="86bc6215-5581-47fa-9835-0fa08cc8d171" name="impl-imddb:insert-site:subflow" doc:description="Record the onboarded site into IMDDB" />
+		<logger level="INFO" doc:name="End Create Workspace" doc:id="9bc060af-f690-4d29-a0a0-4231bf865cf1" message="End Create Workspace" />
+	</sub-flow>
+</mule>

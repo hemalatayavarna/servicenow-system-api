@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="sys-whispir:request:subflow" doc:id="4597874d-e342-4d41-b791-98b4d16733ff" >
+		<logger level="INFO" doc:name="Start Whispir System" doc:id="48fd52ad-446d-47a3-b135-204269462033" message="Start Whispir System" />
+		<flow-ref doc:name="common-flows:set-header:subflow" doc:id="56ec269f-7e66-46de-851c-b425c80f4063" name="common-flows:set-header:subflow"/>
+		<ee:transform doc:name="Set Variable: whispirQueryParameters" doc:id="42ea3399-b736-4012-b0d6-d95fcf67f5df" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="whispirQueryParameters" ><![CDATA[%dw 2.0
+output application/json
+---
+if (vars.whispirQueryParameters != null)
+	vars.whispirQueryParameters
+else
+	{}
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="#[vars.whispirMethod]" doc:name="Call Whispir" doc:id="d59b8f7d-02d5-4f8f-9182-bcd810240ca3" path="#[vars.whispirPath]" sendCorrelationId="ALWAYS" config-ref="whispir.sys-httpRequesterConfig">
+			<http:headers ><![CDATA[#[vars.headers]]]></http:headers>
+			<http:query-params ><![CDATA[#[vars.whispirQueryParameters]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="End Whispir System" doc:id="6f2e4bec-9f4f-4ba7-a0ac-bbbe0287de5d" message="End Whispir System" />
+	</sub-flow>
+</mule>

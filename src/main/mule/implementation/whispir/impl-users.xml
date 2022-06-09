@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="impl-users:create:subflow" doc:id="7a795501-cb8a-44cb-a8c3-92dc5652ab4a" >
+		<logger level="INFO" doc:name="Start Create Users" doc:id="498792ce-8c6e-4a6e-a32c-1dd7c72487ac" message="Start Create Users" />
+		<ee:transform doc:name="Set Payload for Whispir Users, Set Variables: whispirMethod. whispirPath,whispirQueryParameters" doc:id="024274bd-ca99-4b54-bb3e-570aa830ef53">
+			<ee:message>
+				<ee:set-payload resource="dwl/whispir-users-payload.dwl" />
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="whispirMethod"><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('rest.api.method.post')]]></ee:set-variable>
+				<ee:set-variable variableName="whispirPath"><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('whispir.sys.users.path')]]></ee:set-variable>
+				<ee:set-variable variableName="whispirQueryParameters" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"set-active": Mule::p('whispir.boolean.true')
+}]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="sys-whispir:request:subflow - users" doc:id="64fcf09e-d69a-4cbd-9d6c-eb3b308f2b2e" name="sys-whispir:request:subflow" />
+		<logger level="INFO" doc:name="End Create Users" doc:id="d0052b40-9549-48ed-b249-7b0b8e33b350" message="End Create Users" />
+	</sub-flow>
+</mule>

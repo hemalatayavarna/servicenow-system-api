@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<sub-flow name="impl-onboard-site:process:subflow" doc:id="06b8b36b-3a91-4e9f-8960-718469e6e9f5" >
+		<logger level="INFO" doc:name="Start impl-onboard-site:process:subflow" doc:id="658c4750-73e6-4a45-886e-e3070e6d568f" message="Start impl-onboard-site:process:subflow for orgName=#[payload.orgName]"/>
+		<set-variable value="" doc:name="processMessage" doc:id="8c8deca3-2b87-400d-a662-b47bcf909393" variableName="processMessage"/>
+		<flow-ref doc:name="impl-onboard-site:check-org-unit:subflow" doc:id="c5248b66-b688-4a7b-b863-6d305343a116" name="impl-onboard-site:check-org-unit:subflow" />
+		<flow-ref doc:name="impl-workspaces:create:subflow" doc:id="c29cee7c-9c47-4d4f-b7b6-27bffb42b4bc" name="impl-workspaces:create:subflow"/>
+		<ee:transform doc:name="Set Variable: processMessage - workspace success" doc:id="90f41f36-189b-442d-acdf-23fd2713e3b6">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="processMessage"><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"workspace": Mule::p('whispir.onboard.process.success')
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<try doc:name="Try" doc:id="65b45375-db5e-43e4-9d05-6db3775aff22" >
+			<flow-ref doc:name="impl-users:create:subflow" doc:id="c9b21815-6ff4-49b3-b194-39cbb2e0f459" name="impl-users:create:subflow" />
+			<ee:transform doc:name="Set Variable: processMessage - users success" doc:id="74e00b1c-c7da-48cb-8697-ad167f025720" >
+				<ee:message />
+				<ee:variables >
+					<ee:set-variable variableName="processMessage" ><![CDATA[%dw 2.0
+output application/json
+var successMessage = {
+	"users": Mule::p('whispir.onboard.process.success')
+}
+---
+vars.processMessage ++ successMessage
+]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="b4398bf3-c5e6-45ba-8113-7be34f4a9a03" >
+					<ee:transform doc:name="Set Variable: processMessage  - users error" doc:id="5ffdf4be-d28f-401b-8847-660312be5aa9" >
+						<ee:message />
+						<ee:variables >
+							<ee:set-variable variableName="processMessage" ><![CDATA[%dw 2.0
+output application/json
+var errorMessage = {
+	"users": Mule::p('whispir.onboard.process.error')
+}
+---
+vars.processMessage ++ errorMessage]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<try doc:name="Try" doc:id="1c7adae1-a9ec-42a3-bf5c-93c9c0f2ea25" >
+			<flow-ref doc:name="impl-distribution-lists:create:subflow" doc:id="cfa24c3b-bf5f-421e-9e55-29ac85ccab61" name="impl-distribution-lists:create:subflow" doc:description="Requires the whispirWorkspaceId to be set, which is set in the create workspace flow" />
+			<ee:transform doc:name="Set Variable: processMessage  - DL success" doc:id="d868bc62-1aa0-468d-a6b3-c8180896bdd0">
+				<ee:message />
+				<ee:variables>
+					<ee:set-variable variableName="processMessage"><![CDATA[%dw 2.0
+output application/json
+var successMessage = {
+	"distributionLists": Mule::p('whispir.onboard.process.success')
+}
+---
+vars.processMessage ++ successMessage]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="502a6540-f837-42f6-82da-7d4af62f121a" >
+					<ee:transform doc:name="Set Variable: processMessage  - DL error" doc:id="a927e63a-ab54-45ce-9d76-07c6e7b0314a" >
+						<ee:message />
+						<ee:variables >
+							<ee:set-variable variableName="processMessage" ><![CDATA[%dw 2.0
+output application/json
+var errorMessage = {
+	"distributionLists": Mule::p('whispir.onboard.process.error')
+}
+---
+vars.processMessage ++ errorMessage]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<async doc:name="Async" doc:id="fa045643-4cac-4255-bdce-ab37aad9ac68" doc:description="Create the contacts asynchronously when onboarding">
+			<set-variable value="#[vars.orignalPayload.orgUnitId]" doc:name="Set Variable orgUnitId" doc:id="8217629f-ddef-4fad-8914-09c30f8d982c" variableName="orgUnitId" />
+			<flow-ref doc:name="impl-whispir-batch-contacts:subflow" doc:id="038c14ec-0b00-4a74-a3e0-608dd22ba777" name="impl-whispir-batch-contacts:subflow" />
+		</async>
+		<ee:transform doc:name="Set Payload" doc:id="d53ef56d-2356-4b37-91ac-8ce903d9fd52" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": vars.processMessage,
+	"correlationId": correlationId
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="End impl-onboard-site:process:subflow" doc:id="8dab5d6a-06bf-4c56-9ecc-41537e57ddff" message="End impl-onboard-site:process:subflow"/>
+	</sub-flow>
+	<sub-flow name="impl-onboard-site:check-org-unit:subflow" doc:id="9c379d1f-397c-4a02-85db-a2f8ce1073fd" doc:description="Only continue onboarding if the the org unit doesnt exist in IMDDB">
+		<try doc:name="Try" doc:id="2224b0bf-6549-4cda-b271-20fec1953998" >
+			<ee:transform doc:name="Set Variable: orgUnitId" doc:id="6d727f2c-76e7-4463-88c8-2b71f39cc99e">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="orgUnitId"><![CDATA[%dw 2.0
+output application/java
+var data = vars.originalPayload
+---
+data.billingCode]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+			<flow-ref doc:name="impl-imddb:get-org-units:subflow - get data for onboarding org" doc:id="c2437643-194b-4b64-8f10-e13031bb8d87" doc:description="Record the onboarded site into IMDDB" name="impl-imddb:get-org-units:subflow" />
+			<validation:is-null doc:name="Check if payload is null" doc:id="144de304-b398-43a0-ace3-f27c2861d4b5" value="#[payload]" message="#[p('whispir.error.already_onboarded')]">
+				<error-mapping targetType="BUSINESS:ORG_UNIT_ALREADY_ONBOARDED" />
+			</validation:is-null>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="01010720-3076-4863-a287-1d19b6a188c4" type="HTTP:NOT_FOUND">
+					<logger level="INFO" doc:name="Org Unit not found in IMDDB, continue with onboarding" doc:id="c50c1562-9b21-4c5a-8a62-64248e0720f5" message="Org Unit not found in IMDDB, continue with onboarding"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+	</sub-flow>
+
+</mule>

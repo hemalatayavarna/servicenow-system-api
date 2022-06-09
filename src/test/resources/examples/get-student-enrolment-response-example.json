@@ -1,0 +1,50 @@
+{
+  "sourceSystem": "CEDS",
+  "payload": [
+    {
+      "edId": "107601087F",
+      "isPrimary": true,
+      "studentRowNumber": 1,
+      "enrolmentId": "031100002-0311",      
+      "enrolmentEndDate": "2021-12-10T00:00:00",
+      "enrolmentStartDate": "2021-01-25T00:00:00",
+      "studentStatus": "Inactive",
+      "orgUnitId": "6520",
+      "rollClass": "Group C",
+      "isDisable": false,    
+      "campusOrgUnitId": "0311",      
+      "lastUpdatedOn": "2022-01-27T04:57:59.08",
+      "yearLevel": "Preschool"
+    },
+    {
+      "edId": "107601087A",
+      "isPrimary": true,
+      "studentRowNumber": 1,
+      "enrolmentId": "031100002-0311",      
+      "enrolmentEndDate": "2021-12-10T00:00:00",
+      "enrolmentStartDate": "2021-01-25T00:00:00",
+      "studentStatus": "Inactive",
+      "orgUnitId": "6520",
+      "rollClass": "Group C",
+      "isDisable": false,    
+      "campusOrgUnitId": "0311",      
+      "lastUpdatedOn": "2022-01-27T04:57:59.08",
+      "yearLevel": "Preschool"
+    },
+    {
+      "edId": "107601087B",
+      "isPrimary": true,
+      "studentRowNumber": 1,
+      "enrolmentId": "031100002-0311",      
+      "enrolmentEndDate": "2021-12-10T00:00:00",
+      "enrolmentStartDate": "2021-01-25T00:00:00",
+      "studentStatus": "Inactive",
+      "orgUnitId": "6520",
+      "rollClass": "Group D",
+      "isDisable": false,    
+      "campusOrgUnitId": "0311",      
+      "lastUpdatedOn": "2022-01-27T04:57:59.08",
+      "yearLevel": "Preschool"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "orgName": "Adelaide High School",
+  "description": "string",
+  "billingCode": "0123",
+  "alias": {
+    "emailAddress": "adelaide.high.school",
+    "smsFrom": "Adelaide High School",
+    "smsSenderId": "ADLHS",
+    "emailFrom": "Adelaide High School"
+  },
+  "leaders": [
+    {
+      "firstName": "Pat",
+      "lastName": "Bloggs",
+      "email": "pat.bloggs@sa.gov.au"
+    }
+  ],
+  "status": "active",
+  "guardianContactPreference": "both"
+}

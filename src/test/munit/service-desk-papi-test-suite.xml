@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="new-test-suite.xml" />
+	<munit:test name="service-desk-papi-test-suite:whispir-onboard:test" doc:id="4ce7572a-87c5-4d2d-bb49-9707e4d4dc32" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Call Whispir SAPI" doc:id="0ae9803b-ce3a-44a9-a46f-431fea2ea781" processor="http:request">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="Call Whispir" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/post-whispir-sys-workspace-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call IMDDB" doc:id="a4e5346c-645e-4181-b0f7-dcfa62169101" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call IMDDB" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/post-imddb-sys-org-units-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when sys-whispir:request:subflow - users" doc:id="55778517-0b6b-4929-ab21-8fa540d7039d" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="sys-whispir:request:subflow - users" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/post-whispir-sys-users-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call Student PAPI" doc:id="0a9eac73-db1c-4305-8c4f-1d1465c9e4a6" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call Student PAPI" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/get-student-enrolment-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call Staff PAPI" doc:id="d8288b3d-cdbc-4959-8853-9804c98a5ef1" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call Staff PAPI" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/get-staff-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call IMDDB for Single - HTTP:NOT_FOUND" doc:id="fbe399fc-b1ed-465c-a5d2-09a58d7d3749" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="impl-imddb:get-org-units:subflow - get data for onboarding org" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:name="Set Event" doc:id="b610c014-b61b-4cdb-a2ad-146de52078fc" >
+				<munit:payload value="#[MunitTools::getResourceAsString('examples/post-whispir-onboard-request-example.json')]" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="post:\requests\whispir\onboard:application\json:service-desk-process-api-config" doc:id="dd2f82fd-f58a-4fe7-a2ec-76f332b3591a" name="post:\requests\whispir\onboard:application\json:service-desk-process-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call End Whispir Batch Contacts" doc:id="73d05eb5-30c1-4bf6-a549-06f413127cec" processor="logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="End Whispir Batch Contacts" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+			<munit-tools:verify-call doc:name="Verify call End Request Whispir Onboard" doc:id="c7773432-28ce-4dbf-937d-c17d36eb366e" processor="logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="End Request Whispir Onboard" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-desk-papi-test-suite:whispir-onboard:error-already-onboard-test" doc:id="9025eefb-189b-4ff5-8919-6c3afd0ffb62" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Call Whispir SAPI" doc:id="67635f39-6400-495d-9100-c629eed15dc5" processor="http:request">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="Call Whispir" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/post-whispir-sys-workspace-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call IMDDB" doc:id="08891ade-6c96-42c8-ac3a-0c96c764a89d" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call IMDDB" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/post-imddb-sys-org-units-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when sys-whispir:request:subflow - users" doc:id="10a37317-e41f-43bb-afe7-2d6d0432c473" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="sys-whispir:request:subflow - users" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/post-whispir-sys-users-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call Error" doc:id="f8b20231-b62b-4d1e-872f-572be0d0d409" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="POST to Errors Path" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call Student PAPI" doc:id="21e98103-9b22-44a3-abd5-3149adc2e043" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call Student PAPI" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/get-student-enrolment-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call Staff PAPI" doc:id="15afdd28-d2d4-47a9-beb3-472b6391cc63" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call Staff PAPI" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/get-staff-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call IMDDB Not emtpy payload" doc:id="192d35bf-3fff-456c-afdd-5309378f2ff5" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="impl-imddb:get-org-units:subflow - get data for onboarding org" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/post-imddb-sys-org-units-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:name="Set Event" doc:id="2a7cc815-cc44-4a63-ba97-4f3088415672" >
+				<munit:payload value="#[MunitTools::getResourceAsString('examples/post-whispir-onboard-request-example.json')]" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="post:\requests\whispir\onboard:application\json:service-desk-process-api-config" doc:id="93b01bb8-4ad4-4049-ab26-9a2daad05684" name="post:\requests\whispir\onboard:application\json:service-desk-process-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call Error Message" doc:id="dceb5c95-82f4-49fd-a3de-1e40528277a5" processor="logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Response ORG_UNIT_ALREADY_ONBOARDED Error Message" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-desk-papi-test-with-errors:whispir-onboard:test" doc:id="d7ed0f5d-508a-4d11-bab8-4ae1056e2620" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when impl-users:create:subflow - HTTP:NOT_FOUND" doc:id="9ebd28fe-665d-46b2-b015-5da575dae115" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="impl-users:create:subflow" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call Whispir SAPI" doc:id="b338d6c0-0021-46fc-ac36-fbba35844da7" processor="http:request">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="Call Whispir" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/post-whispir-sys-workspace-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call IMDDB" doc:id="622ce720-a790-4a0c-8b37-a90f164f30e9" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call IMDDB" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/post-imddb-sys-org-units-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when sys-whispir:request:subflow - users" doc:id="04f5d613-4268-4f36-a5b2-abbb713dbc0c" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="sys-whispir:request:subflow - users" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/post-whispir-sys-users-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call Student PAPI" doc:id="2ec6eff7-1bd9-4029-aedb-3ccf154a9e80" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call Student PAPI" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/get-student-enrolment-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call Staff PAPI" doc:id="a68f2396-7a1b-4e70-86b5-cd85e4ff59af" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Call Staff PAPI" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/get-staff-response-example.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Call IMDDB for Single - HTTP:NOT_FOUND" doc:id="4ad184b0-2bf0-4dca-ad39-340f85d5f4c1" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="impl-imddb:get-org-units:subflow - get data for onboarding org" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when impl-distribution-lists:create:subflow - HTTP:NOT_FOUND" doc:id="59d9933f-9081-404b-a885-1f1e7c6747df" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="impl-distribution-lists:create:subflow" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		
+</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:name="Set Event" doc:id="64dd53d6-d858-46c0-b0a6-1245803b7f4b">
+				<munit:payload value="#[MunitTools::getResourceAsString('examples/post-whispir-onboard-request-example.json')]" mediaType="application/json" />
+				<munit:attributes value="#[MunitTools::getResourceAsString('examples/post-whispir-onboard-response-partial-success-attributes-example.json')]" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="post:\requests\whispir\onboard:application\json:service-desk-process-api-config" doc:id="95cc8f39-7b32-418d-8b69-776debcebe47" name="post:\requests\whispir\onboard:application\json:service-desk-process-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call End Whispir Batch Contacts" doc:id="38c9e534-8b76-4171-b885-3dffa2dbaefb" processor="logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="End Whispir Batch Contacts" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+			<munit-tools:verify-call doc:name="Verify call End Request Whispir Onboard" doc:id="a5cc4bcb-e439-4c50-8faa-7e1abc365b54" processor="logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="End Request Whispir Onboard" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+			<munit-tools:assert doc:name="Assert payload.message object is Expected" doc:id="ea683d51-9769-43b1-b1ed-f2d9bd3bdd6a" message="Actual response matches with the Expected response">
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload.message must equalToResource("examples/post-whispir-onboard-response-partial-success-without-correlationId-example.json","application/json")]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="service-desk-papi-test-suite:health:test" doc:id="a9c55119-dc1a-465a-a9f4-e7672034d8d0" >
+		<munit:execution >
+			<flow-ref doc:name="get:\health:service-desk-process-api-config" doc:id="2bb3e071-b48f-4d3f-8c97-3a9f5f2cfebe" name="get:\health:service-desk-process-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that Paylod is Not Null" doc:id="1784f220-a6e2-462d-ba9b-81e45488fd3f" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

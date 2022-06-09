@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="sys-error:send-error:subflow" doc:id="7c8a1e2f-e89f-4093-a4ef-b949cc53440e" >
+		<logger level="INFO" doc:name="Start Send Error" doc:id="4f4d5604-03b7-44d8-b80a-67601c354417" message="Start Send Error"/>
+		<flow-ref doc:name="common-flows:set-header:subflow" doc:id="cb6364bf-cd2a-4e7b-8949-498f0ce48b21" name="common-flows:set-header:subflow" />
+		<http:request method="POST" doc:name="POST to Errors Path" doc:id="760a1754-8071-4fcb-bc63-3aef9f3a3921" config-ref="error-audit-system-api-httpRequesterConfig" path="${error.sys.api.errors.path}" sendCorrelationId="ALWAYS">
+			<http:headers ><![CDATA[#[vars.headers]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="End Send Error" doc:id="de53f66e-f78a-4d53-9aca-d04f3d2b236e" message="End Send Error" />
+	</sub-flow>
+</mule>

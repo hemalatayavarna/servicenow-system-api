@@ -1,0 +1,36 @@
+trigger:
+  branches:
+    include:
+    - main
+    - hotfix/*
+    - release/*
+    - feature/*
+    - bugfix/*
+  paths:
+    exclude:
+    - src/test/postman
+
+variables:
+  apiName: 'service-desk-papi'
+  version: '1.0.0'
+
+resources:
+  repositories:
+  - repository: azure-devops
+    type: git
+    name: azure-devops
+    ref: refs/heads/main
+extends:
+  template: azure-pipelines-main.yml@azure-devops
+  parameters:
+    apiAssetId: 'service-desk-process-api'
+    apiAssetVersion: 'v1'
+    featureCloudhubApplicationName: $(apiName)-ftr
+    devCloudhubApplicationName: $(apiName)-dev
+    devCloudhubWorkerType: 'SMALL' 
+    sitCloudhubApplicationName: $(apiName)-sit
+    sitCloudhubWorkerType: 'SMALL'
+    uatCloudhubApplicationName: $(apiName)-uat
+    uatCloudhubWorkerType: 'SMALL'
+    prdCloudhubApplicationName: $(apiName)
+    prdCloudhubWorkerType: 'SMALL'

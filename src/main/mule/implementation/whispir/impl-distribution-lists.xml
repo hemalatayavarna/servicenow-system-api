@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+
+	<sub-flow name="impl-distribution-lists:create-employee-dl:subflow" doc:id="338be53e-9c01-4b97-9d44-cb514b93c244" >
+		<ee:transform doc:name="Set Payload for Employees DL" doc:id="6c51267f-b73d-4a7d-999c-3c783d852eb2">
+			<ee:message>
+				<ee:set-payload resource="dwl/whispir-distribution-list-employees-payload.dwl" />
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="sys-whispir:request:subflow" doc:id="6f987fae-bd8c-43c5-b376-7994bbaaa95b" name="sys-whispir:request:subflow" />
+	</sub-flow>
+	<sub-flow name="impl-distribution-lists:create:subflow" doc:id="daa9925c-afd6-4f22-b24a-16be07136965" >
+		<logger level="INFO" doc:name="Start Create Distribution-Lists" doc:id="da3b06a0-6306-46fc-b2e7-12f0b1af51da" message="Start Create Distribution-Lists" />
+		<set-variable value="#[vars.originalPayload.billingCode]" doc:name="orgUnitId" doc:id="11fb3961-7f24-42da-8864-a69716837546" variableName="orgUnitId"/>
+		<flow-ref doc:name="impl-distribution-lists:get-enrolment-data:subflow" doc:id="f5968a05-d216-4b6a-8fbf-1d4b23e34032" name="impl-distribution-lists:get-enrolment-data:subflow" />
+		<ee:transform doc:name="Set Variable: Roll Class" doc:id="b0cb2dc4-2aa1-481c-b6b1-4837f63c6332">
+			<ee:message>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="rollClassData" ><![CDATA[%dw 2.0
+output application/json
+var rollClassData = payload.payload map ((item, index) -> {
+    "rollClass": item.rollClass,
+    "rollClassDescription": item.rollClass
+}) distinctBy $.rollClass
+---
+rollClassData]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Set Variables: whispirMethod. whispirPath" doc:id="2dcd3d8e-7582-401a-930f-216a240e2dd1" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="whispirMethod" ><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('rest.api.method.post')]]></ee:set-variable>
+				<ee:set-variable variableName="whispirPath" ><![CDATA[%dw 2.0
+import p from Mule
+
+output application/java
+var workspacePath = p('whispir.sys.workspaces.path')
+var distributionlistsPath = p('whispir.sys.distributionlists.path')
+var workspaceId = vars.whispirWorkspaceId default ""
+var path = "$(workspacePath)/$(workspaceId)$(distributionlistsPath)"
+---
+path]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="a55c9e15-b08a-4fed-88a1-936c407cb407" collection="vars.rollClassData">
+			<ee:transform doc:name="Set Payload for Roll Class DLs" doc:id="c0a1b8de-2861-45ee-9b44-8e40f6a40ef1" >
+				<ee:message >
+					<ee:set-payload resource="dwl/whispir-distribution-list-roll-class-payload.dwl" />
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="sys-whispir:request:subflow" doc:id="2eccbc5d-a844-4b35-af65-552b31b2196e" name="sys-whispir:request:subflow"/>
+		</foreach>
+		<flow-ref doc:name="impl-distribution-lists:create-employee-dl:subflow" doc:id="042f6653-06b5-4b8d-8f68-10bbedad1877" name="impl-distribution-lists:create-employee-dl:subflow" />
+		<logger level="INFO" doc:name="End Create Distribution-Lists" doc:id="62032834-2b3f-4ace-ba61-4f4da87011e9" message="End Create Distribution-Lists" />
+	
+</sub-flow>
+
+	<sub-flow name="impl-distribution-lists:get-enrolment-data:subflow" doc:id="7bec47c3-08c7-4bf0-bfac-2944f05e3d24" >
+		<ee:transform doc:name="Set Variables: studentPath, studentQueryParameters" doc:id="4bd9e75a-dbc9-409f-a26d-0b12fea7e155">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="studentPath"><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('student.proc.student_enrolments.path')]]></ee:set-variable>
+				<ee:set-variable variableName="studentQueryParameters"><![CDATA[%dw 2.0
+import p from Mule
+
+output application/java
+---
+{
+	"org-unit-id": vars.orgUnitId,
+	"school-type": p('student.department.school'),
+	"status": p('student.status.active')
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="proc-student:request:subflow" doc:id="4e28d995-1d05-4cf5-ba99-456505cc3f6e" name="proc-student:request:subflow" />
+		<choice doc:name="Get Enrolment data for Preschools if payload from Schools is empty" doc:id="0185a771-1e9a-476b-9584-5d0911db106c">
+			<when expression="#[isEmpty(payload.payload)]" >
+				<ee:transform doc:name="Set Variables: studentPath, studentQueryParameters" doc:id="bfcd675b-d1a2-4d4d-9206-ab4cec097af1" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="studentPath" ><![CDATA[%dw 2.0
+output application/java
+---
+Mule::p('student.proc.student_enrolments.path')]]></ee:set-variable>
+						<ee:set-variable variableName="studentQueryParameters" ><![CDATA[%dw 2.0
+import p from Mule
+
+output application/java
+---
+{
+	"org-unit-id": vars.orgUnitId,
+	"school-type": p('student.department.preschool'),
+	"status": p('student.status.active')
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="proc-student:request:subflow" doc:id="2b2f965c-3bdc-428f-bf3a-151197da4ed8" name="proc-student:request:subflow" />
+			</when>
+			<otherwise >
+				<logger level="DEBUG" doc:name="(DEBUG) Retrieved School Data" doc:id="7d1072be-7676-4ead-946a-a02aae331103" message="Retrieved School Data"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>
